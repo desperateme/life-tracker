@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc
 from database import get_db
 from logger import log
+from auth import require_auth
 from models import TaskRecord
 
 router = APIRouter()
@@ -51,6 +52,7 @@ def tasks_page(request: Request, db: Session = Depends(get_db)):
 def add_task(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     title: str = Form(""),
     description: str = Form(""),
     priority: str = Form("medium"),
@@ -74,7 +76,7 @@ def add_task(
 
 
 @router.post("/tasks/{task_id}/complete")
-def complete_task(task_id: int, db: Session = Depends(get_db)):
+def complete_task(task_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     task = db.query(TaskRecord).filter(TaskRecord.id == task_id).first()
     if task and task.status != "已完成":
         task.status = "已完成"
@@ -91,6 +93,7 @@ def complete_task(task_id: int, db: Session = Depends(get_db)):
 def extend_task(
     task_id: int,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     new_deadline: str = Form(""),
 ):
     task = db.query(TaskRecord).filter(TaskRecord.id == task_id).first()
@@ -102,7 +105,7 @@ def extend_task(
 
 
 @router.post("/tasks/{task_id}/delete")
-def delete_task(task_id: int, db: Session = Depends(get_db)):
+def delete_task(task_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     task = db.query(TaskRecord).filter(TaskRecord.id == task_id).first()
     if task:
         db.delete(task)

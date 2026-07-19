@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 — 人生修仙录</title>
+    <style>
+        :root {
+            --bg: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --text: #e0e0e0;
+            --primary: #ff9800;
+            --danger: #e53935;
+            --border: #2a2a4a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh;
+        }
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 380px;
+            text-align: center;
+        }
+        .login-card .emoji { font-size: 3rem; margin-bottom: 12px; }
+        .login-card h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; }
+        .login-card p { color: #888; font-size: 0.9rem; margin-bottom: 24px; }
+        .login-card input {
+            width: 100%;
+            background: #0a0a15;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 1rem;
+            margin-bottom: 16px;
+            font-family: inherit;
+        }
+        .login-card input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .login-card button:hover { opacity: 0.85; }
+        .error { color: var(--danger); font-size: 0.9rem; margin-bottom: 12px; }
+        .back-link { display: block; margin-top: 16px; color: #888; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="emoji">🏔️</div>
+        <h1>人生修仙录</h1>
+        <p>请输入密码以获取修改权限</p>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <form method="post">
+            <input type="password" name="password" placeholder="管理员密码" autofocus required>
+            <button type="submit">🔓 解锁道心</button>
+        </form>
+        <a href="/" class="back-link">← 以只读模式浏览</a>
+    </div>
+</body>
+</html>

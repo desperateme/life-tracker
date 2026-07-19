@@ -1,9 +1,10 @@
 """人生修仙录 — FastAPI 入口"""
 import sys
+import secrets
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding='utf-8') if hasattr(sys.stdout, 'reconfigure') else None
 
 from database import init_db
+from auth import is_authenticated, ADMIN_PASSWORD, sign_token
 from routes import dashboard, learning, fitness, discipline, tasks, earning, finance, progress
 
 
@@ -48,6 +50,58 @@ class SimpleTemplates:
 app.state.templates = SimpleTemplates(jinja_env)
 
 print(f"[启动] TEMPLATE_DIR={TEMPLATE_DIR}", flush=True)
+
+
+# ===== 认证中间件 =====
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    """将认证状态注入 request.state，模板可通过 request.state.is_authenticated 访问"""
+    request.state.is_authenticated = is_authenticated(request)
+    response = await call_next(request)
+    return response
+
+
+# ===== 登录 / 登出 =====
+@app.get("/login")
+def login_page(request: Request, next: str = "/"):
+    """登录页（GET）"""
+    if is_authenticated(request):
+        return RedirectResponse(url=next, status_code=303)
+    return app.state.templates.TemplateResponse("login.html", {
+        "request": request,
+        "error": None,
+        "next": next,
+    })
+
+
+@app.post("/login")
+def login_action(request: Request, password: str = Form(""), next: str = Form("/")):
+    """登录操作（POST）"""
+    if password == ADMIN_PASSWORD:
+        token = sign_token(secrets.token_hex(32))
+        response = RedirectResponse(url=next, status_code=303)
+        response.set_cookie(
+            key="xiuxian_auth",
+            value=token,
+            httponly=True,
+            max_age=365 * 24 * 3600,  # 一年有效期
+            samesite="lax",
+        )
+        return response
+    return app.state.templates.TemplateResponse("login.html", {
+        "request": request,
+        "error": "密码错误，道心不稳 ⚠️",
+        "next": next,
+    })
+
+
+@app.get("/logout")
+def logout():
+    """登出"""
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("xiuxian_auth")
+    return response
+
 
 # 注册路由
 @app.get("/health")

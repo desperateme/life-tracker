@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from logger import log
+from auth import require_auth
 from models import LearningRecord
 
 router = APIRouter()
@@ -28,6 +29,7 @@ def learning_page(request: Request, db: Session = Depends(get_db)):
 def add_learning(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     topic: str = Form(""),
     description: str = Form(""),
     duration_minutes: int = Form(0),
@@ -52,7 +54,7 @@ def add_learning(
 
 
 @router.post("/learning/{record_id}/delete")
-def delete_learning(record_id: int, db: Session = Depends(get_db)):
+def delete_learning(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(LearningRecord).filter(LearningRecord.id == record_id).first()
     if record:
         db.delete(record)

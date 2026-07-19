@@ -21,10 +21,34 @@
             <a href="/earning">💰 赚钱</a>
             <a href="/finance">📒 财务</a>
             <a href="/history">📜 历史</a>
+            {% if request.state.is_authenticated %}
+            <a href="/logout" style="color:#e53935;">🚪 退出</a>
+            {% else %}
+            <a href="/login" style="color:#ff9800;">🔒 登录</a>
+            {% endif %}
         </div>
     </nav>
+    {% if not request.state.is_authenticated %}
+    <div style="background:rgba(255,152,0,0.1);border-bottom:1px solid rgba(255,152,0,0.3);text-align:center;padding:8px;font-size:0.85rem;color:#ff9800;">
+        👁️ 只读模式 · <a href="/login" style="color:#ff9800;font-weight:bold;">登录</a> 后可修改数据
+    </div>
+    {% endif %}
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+    {% if not request.state.is_authenticated %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('form[method="post"]').forEach(function(form) {
+            form.style.display = 'none';
+            var msg = document.createElement('p');
+            msg.className = 'empty';
+            msg.style.cssText = 'color:#ff9800;padding:12px;border:1px dashed #ff9800;border-radius:8px;margin:8px 0;';
+            msg.textContent = '🔒 只读模式 — 请登录后操作';
+            form.parentNode.insertBefore(msg, form);
+        });
+    });
+    </script>
+    {% endif %}
 </body>
 </html>

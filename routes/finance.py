@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
 from logger import log
+from auth import require_auth
 from models import ExpenseRecord, IncomeRecord, BorrowRecord, InvestmentRecord, LifeProgress
 
 router = APIRouter()
@@ -56,6 +57,7 @@ def finance_page(request: Request, db: Session = Depends(get_db)):
 def add_expense(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     category: str = Form("其他"),
     amount: float = Form(0),
     description: str = Form(""),
@@ -71,7 +73,7 @@ def add_expense(
 
 
 @router.post("/finance/expense/{record_id}/delete")
-def delete_expense(record_id: int, db: Session = Depends(get_db)):
+def delete_expense(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(ExpenseRecord).filter(ExpenseRecord.id == record_id).first()
     if record:
         db.delete(record)
@@ -85,6 +87,7 @@ def delete_expense(record_id: int, db: Session = Depends(get_db)):
 def add_income(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     source: str = Form("其他"),
     amount: float = Form(0),
     description: str = Form(""),
@@ -114,7 +117,7 @@ def add_income(
 
 
 @router.post("/finance/income/{record_id}/delete")
-def delete_income(record_id: int, db: Session = Depends(get_db)):
+def delete_income(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(IncomeRecord).filter(IncomeRecord.id == record_id).first()
     if record:
         db.delete(record)
@@ -128,6 +131,7 @@ def delete_income(record_id: int, db: Session = Depends(get_db)):
 def add_borrow(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     type: str = Form("我欠别人"),
     person: str = Form(""),
     amount: float = Form(0),
@@ -147,6 +151,7 @@ def add_borrow(
 def repay_borrow(
     record_id: int,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     amount: float = Form(0),
 ):
     record = db.query(BorrowRecord).filter(BorrowRecord.id == record_id).first()
@@ -161,7 +166,7 @@ def repay_borrow(
 
 
 @router.post("/finance/borrow/{record_id}/delete")
-def delete_borrow(record_id: int, db: Session = Depends(get_db)):
+def delete_borrow(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(BorrowRecord).filter(BorrowRecord.id == record_id).first()
     if record:
         db.delete(record)
@@ -175,6 +180,7 @@ def delete_borrow(record_id: int, db: Session = Depends(get_db)):
 def add_investment(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     invest_type: str = Form("其他"),
     name: str = Form(""),
     buy_price: float = Form(0),
@@ -197,6 +203,7 @@ def add_investment(
 def update_investment(
     record_id: int,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     current_value: float = Form(0),
 ):
     record = db.query(InvestmentRecord).filter(InvestmentRecord.id == record_id).first()
@@ -211,6 +218,7 @@ def update_investment(
 def sell_investment(
     record_id: int,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     sell_price: float = Form(0),
 ):
     record = db.query(InvestmentRecord).filter(InvestmentRecord.id == record_id).first()
@@ -224,7 +232,7 @@ def sell_investment(
 
 
 @router.post("/finance/investment/{record_id}/delete")
-def delete_investment(record_id: int, db: Session = Depends(get_db)):
+def delete_investment(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(InvestmentRecord).filter(InvestmentRecord.id == record_id).first()
     if record:
         db.delete(record)
@@ -238,6 +246,7 @@ def delete_investment(record_id: int, db: Session = Depends(get_db)):
 def update_savings(
     current_savings: float = Form(0),
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
 ):
     from fastapi.responses import RedirectResponse
     from scoring import check_savings_milestone

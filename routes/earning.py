@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from logger import log
+from auth import require_auth
 from models import EarningRecord, LifeProgress
 
 router = APIRouter()
@@ -31,6 +32,7 @@ def earning_page(request: Request, db: Session = Depends(get_db)):
 def add_earning(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     platform: str = Form(""),
     activity_type: str = Form(""),
     description: str = Form(""),
@@ -86,7 +88,7 @@ def add_earning(
 
 
 @router.post("/earning/{record_id}/delete")
-def delete_earning(record_id: int, db: Session = Depends(get_db)):
+def delete_earning(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(EarningRecord).filter(EarningRecord.id == record_id).first()
     if record:
         db.delete(record)
@@ -102,6 +104,7 @@ def delete_earning(record_id: int, db: Session = Depends(get_db)):
 def update_followers(
     current_followers: int = Form(0),
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
 ):
     from fastapi.responses import RedirectResponse
     from scoring import check_follower_milestone

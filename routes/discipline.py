@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from logger import log
+from auth import require_auth
 from models import DisciplineRecord
 
 router = APIRouter()
@@ -31,6 +32,7 @@ def discipline_page(request: Request, db: Session = Depends(get_db)):
 def add_discipline(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     habit_type: str = Form("其他"),
     count: int = Form(1),
     duration_minutes: str = Form(""),
@@ -59,7 +61,7 @@ def add_discipline(
 
 
 @router.post("/discipline/{record_id}/delete")
-def delete_discipline(record_id: int, db: Session = Depends(get_db)):
+def delete_discipline(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(DisciplineRecord).filter(DisciplineRecord.id == record_id).first()
     if record:
         db.delete(record)

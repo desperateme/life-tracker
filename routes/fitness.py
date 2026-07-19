@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from logger import log
+from auth import require_auth
 from models import FitnessRecord
 
 router = APIRouter()
@@ -28,6 +29,7 @@ def fitness_page(request: Request, db: Session = Depends(get_db)):
 def add_fitness(
     request: Request,
     db: Session = Depends(get_db),
+    _auth=Depends(require_auth),
     exercise_type: str = Form(""),
     duration_minutes: int = Form(0),
     weight_kg: str = Form(""),
@@ -55,7 +57,7 @@ def add_fitness(
 
 
 @router.post("/fitness/{record_id}/delete")
-def delete_fitness(record_id: int, db: Session = Depends(get_db)):
+def delete_fitness(record_id: int, db: Session = Depends(get_db), _auth=Depends(require_auth)):
     record = db.query(FitnessRecord).filter(FitnessRecord.id == record_id).first()
     if record:
         db.delete(record)
