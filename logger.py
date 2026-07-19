@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import os as _os
-_DATA_DIR = _os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", str(Path(__file__).parent))
+_DATA_DIR = "/data" if _os.path.isdir("/data") else str(Path(__file__).parent)
 LOG_DIR = Path(_DATA_DIR) / "logs"
 
 # 操作日志

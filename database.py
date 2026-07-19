@@ -3,8 +3,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 import os
-# Railway 提供持久化目录 /data，本地用当前目录
-DATA_DIR = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", ".")
+# Railway 默认挂载 /data，本地开发用当前目录
+DATA_DIR = "/data" if os.path.isdir("/data") else "."
 DATABASE_URL = f"sqlite:///{DATA_DIR}/life_tracker.db"
 
 engine = create_engine(DATABASE_URL, echo=False, connect_args={"check_same_thread": False})

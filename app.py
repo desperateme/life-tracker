@@ -1,4 +1,5 @@
 """人生修仙录 — FastAPI 入口"""
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -7,11 +8,16 @@ from pathlib import Path
 from database import init_db
 from routes import dashboard, learning, fitness, discipline, tasks, earning, finance, progress
 
-# 初始化数据库
-init_db()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用启动时初始化数据库"""
+    init_db()
+    yield
+
 
 # 创建应用
-app = FastAPI(title="人生修仙录", version="1.0")
+app = FastAPI(title="人生修仙录", version="1.0", lifespan=lifespan)
 
 # 模板 & 静态文件
 BASE_DIR = Path(__file__).parent
