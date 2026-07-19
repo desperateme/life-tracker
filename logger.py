@@ -4,7 +4,9 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-LOG_DIR = Path(__file__).parent / "logs"
+import os as _os
+_DATA_DIR = _os.environ.get("RAILWAY_VOLUME_MOUNT_PATH", str(Path(__file__).parent))
+LOG_DIR = Path(_DATA_DIR) / "logs"
 
 # 操作日志
 op_logger = logging.getLogger("life_tracker")
