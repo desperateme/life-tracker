@@ -25,11 +25,16 @@ app = FastAPI(title="人生修仙录", version="1.0", lifespan=lifespan)
 
 # 模板 & 静态文件（用 resolve 确保绝对路径）
 BASE_DIR = Path(__file__).resolve().parent
-TEMPLATE_DIR = str(BASE_DIR / "templates")
-STATIC_DIR = str(BASE_DIR / "static")
+TEMPLATE_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
 
-templates = Jinja2Templates(directory=TEMPLATE_DIR)
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# 确保模板目录存在
+import os as _os
+if not TEMPLATE_DIR.exists():
+    raise RuntimeError(f"Templates dir not found: {TEMPLATE_DIR}")
+
+templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # 将 templates 挂到 app.state 供路由使用
 app.state.templates = templates
@@ -48,7 +53,12 @@ def health():
 @app.get("/ping")
 def ping(request: Request):
     """测试模板渲染"""
-    return templates.TemplateResponse("base.html", {"request": request})
+    import traceback
+    try:
+        return templates.TemplateResponse("base.html", {"request": request})
+    except Exception as e:
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(f"<pre>Template error: {e}\n{traceback.format_exc()}</pre>")
 
 @app.get("/test")
 def test_html():
