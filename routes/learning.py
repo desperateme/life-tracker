@@ -1,6 +1,7 @@
 """学习记录 CRUD"""
 from datetime import date as date_type, datetime
 from fastapi import APIRouter, Request, Depends, Form
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from logger import log
@@ -47,7 +48,7 @@ def add_learning(
     from scoring import sync_daily_effort
     sync_daily_effort(db, d)
 
-    return learning_page(request, db)
+    return RedirectResponse(url="/learning", status_code=303)
 
 
 @router.post("/learning/{record_id}/delete")

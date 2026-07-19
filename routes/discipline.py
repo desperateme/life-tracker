@@ -1,6 +1,7 @@
 """戒律记录 CRUD"""
 from datetime import date as date_type
 from fastapi import APIRouter, Request, Depends, Form
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from logger import log
@@ -54,7 +55,7 @@ def add_discipline(
     from scoring import sync_daily_effort
     sync_daily_effort(db, d)
 
-    return discipline_page(request, db)
+    return RedirectResponse(url="/discipline", status_code=303)
 
 
 @router.post("/discipline/{record_id}/delete")

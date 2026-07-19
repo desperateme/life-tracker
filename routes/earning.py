@@ -1,6 +1,7 @@
 """赚钱记录 CRUD + 粉丝里程碑"""
 from datetime import date as date_type
 from fastapi import APIRouter, Request, Depends, Form
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
 from logger import log
@@ -81,7 +82,7 @@ def add_earning(
     from scoring import sync_daily_effort
     sync_daily_effort(db, d)
 
-    return earning_page(request, db)
+    return RedirectResponse(url="/earning", status_code=303)
 
 
 @router.post("/earning/{record_id}/delete")

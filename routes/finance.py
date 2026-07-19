@@ -1,6 +1,7 @@
 """财务管理 — 支出/收入/借贷/投资 + 储蓄里程碑"""
 from datetime import date as date_type, datetime
 from fastapi import APIRouter, Request, Depends, Form
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
@@ -66,7 +67,7 @@ def add_expense(
     db.commit()
     from scoring import sync_daily_effort
     sync_daily_effort(db, d)
-    return finance_page(request, db)
+    return RedirectResponse(url="/finance", status_code=303)
 
 
 @router.post("/finance/expense/{record_id}/delete")
@@ -109,7 +110,7 @@ def add_income(
     db.commit()
     from scoring import sync_daily_effort
     sync_daily_effort(db, d)
-    return finance_page(request, db)
+    return RedirectResponse(url="/finance", status_code=303)
 
 
 @router.post("/finance/income/{record_id}/delete")
@@ -139,7 +140,7 @@ def add_borrow(
     db.add(BorrowRecord(date=d, type=type, person=person, amount=amount, due_date=dd, notes=notes))
     log("info", "财务", "新增借贷", f"{type} | {person} | ¥{amount}")
     db.commit()
-    return finance_page(request, db)
+    return RedirectResponse(url="/finance", status_code=303)
 
 
 @router.post("/finance/borrow/{record_id}/repay")
@@ -189,7 +190,7 @@ def add_investment(
         buy_price=buy_price, current_value=cv, notes=notes,
     ))
     db.commit()
-    return finance_page(request, db)
+    return RedirectResponse(url="/finance", status_code=303)
 
 
 @router.post("/finance/investment/{record_id}/update")

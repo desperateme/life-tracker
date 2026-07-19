@@ -1,6 +1,7 @@
 """任务系统 CRUD + 逾期检测"""
 from datetime import datetime, date as date_type
 from fastapi import APIRouter, Request, Depends, Form
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import asc
 from database import get_db
@@ -69,7 +70,7 @@ def add_task(
     from scoring import sync_daily_effort
     sync_daily_effort(db)
 
-    return tasks_page(request, db)
+    return RedirectResponse(url="/tasks", status_code=303)
 
 
 @router.post("/tasks/{task_id}/complete")
