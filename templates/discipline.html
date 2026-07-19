@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🚫 戒律 — 斩断心魔</h2>
+
+<form method="post" class="record-form">
+    <input type="date" name="record_date" value="{{ today }}">
+    <select name="habit_type" id="habitSelect">
+        {% for h in habit_types %}
+        <option value="{{ h }}">{{ h }}</option>
+        {% endfor %}
+    </select>
+    <input type="number" name="count" value="1" min="1" placeholder="次数" style="width:80px">
+    <input type="number" name="duration_minutes" id="durationInput" placeholder="时长（分钟）— 仅游戏必填" style="display:none">
+    <textarea name="notes" placeholder="备注..." rows="2"></textarea>
+    <button type="submit" class="btn btn-danger">记录破戒</button>
+</form>
+
+<script>
+document.getElementById('habitSelect').addEventListener('change', function() {
+    var dur = document.getElementById('durationInput');
+    dur.style.display = this.value === '游戏' ? 'block' : 'none';
+});
+</script>
+
+<h3>📅 今日记录</h3>
+{% if records %}
+<ul class="record-list">
+    {% for r in records %}
+    <li class="record-bad">
+        <span class="record-topic">{{ r.habit_type }}</span>
+        <span>×{{ r.count }}</span>
+        {% if r.duration_minutes %}<span>{{ r.duration_minutes }} 分钟</span>{% endif %}
+        {% if r.notes %}<span class="record-desc">{{ r.notes }}</span>{% endif %}
+        <form method="post" action="/discipline/{{ r.id }}/delete" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">今日清净！🧘</p>
+{% endif %}
+
+<p class="hint">💡 破戒 1 次 -10 | 2 次 -20 | ≥3 次 -40 &nbsp;|&nbsp; 游戏超 60 分钟每 15 分钟 -5 &nbsp;|&nbsp; 完全清净 +10</p>
+{% endblock %}

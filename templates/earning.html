@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>💰 赚钱（自媒体副业）</h2>
+
+<form method="post" class="record-form">
+    <input type="date" name="record_date" value="{{ today }}">
+    <input type="text" name="platform" placeholder="平台（抖音/B站/小红书...）" required>
+    <input type="text" name="activity_type" placeholder="活动类型（发视频/写文案/调研...）">
+    <textarea name="description" placeholder="具体内容..." rows="2"></textarea>
+    <input type="number" name="time_spent_minutes" placeholder="耗时（分钟）" min="1" max="180" required>
+    <input type="number" name="followers_gained" placeholder="涨粉数（选填）" min="0">
+    <input type="number" name="revenue" placeholder="收入（选填）" min="0" step="0.01">
+    <textarea name="notes" placeholder="备注..." rows="2"></textarea>
+    <button type="submit" class="btn btn-primary">+ 记录</button>
+</form>
+
+<!-- 粉丝里程碑 -->
+{% if progress %}
+<div class="milestone-card">
+    <span>📱 当前粉丝: <strong>{{ progress.current_followers }}</strong></span>
+    <form method="post" action="/api/followers/update" style="display:inline; margin-left:10px;">
+        <input type="number" name="current_followers" placeholder="手动更新粉丝数" value="{{ progress.current_followers }}" style="width:120px">
+        <button class="btn btn-sm">更新</button>
+    </form>
+    {% if progress.follower_milestones %}
+    <div class="achieved">🏆 已达成: {{ progress.follower_milestones }}</div>
+    {% endif %}
+</div>
+{% endif %}
+
+<h3>📅 今日记录</h3>
+{% if records %}
+<ul class="record-list">
+    {% for r in records %}
+    <li>
+        <span class="record-topic">{{ r.platform }}</span>
+        <span>{{ r.activity_type }}</span>
+        <span class="record-time">{{ r.time_spent_minutes }} 分钟</span>
+        {% if r.followers_gained %}<span>+{{ r.followers_gained }} 粉</span>{% endif %}
+        {% if r.revenue %}<span>¥{{ r.revenue }}</span>{% endif %}
+        <form method="post" action="/earning/{{ r.id }}/delete" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">今天还没做自媒体，开始行动吧！</p>
+{% endif %}
+
+<p class="hint">💡 每 15 分钟 = +5 修为，满 3 小时 +60 &nbsp;|&nbsp; 粉丝里程碑奖励高达 +5000</p>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>🧠 学习记录</h2>
+
+<form method="post" class="record-form">
+    <input type="date" name="record_date" value="{{ today }}">
+    <input type="text" name="topic" placeholder="学习主题 (LLM/Agent/RAG/...)" required>
+    <textarea name="description" placeholder="具体学了什么..." rows="2"></textarea>
+    <input type="number" name="duration_minutes" placeholder="时长（分钟）" min="1" max="180" required>
+    <button type="submit" class="btn btn-primary">+ 记录</button>
+</form>
+
+<h3>📅 今日记录</h3>
+{% if records %}
+<ul class="record-list">
+    {% for r in records %}
+    <li>
+        <span class="record-topic">{{ r.topic or '未分类' }}</span>
+        <span class="record-desc">{{ r.description }}</span>
+        <span class="record-time">{{ r.duration_minutes }} 分钟</span>
+        <form method="post" action="/learning/{{ r.id }}/delete" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">还未记录，去学点 AI 知识吧！</p>
+{% endif %}
+
+<p class="hint">💡 每 15 分钟 = +5 修为，学满 3 小时可获 +60</p>
+{% endblock %}

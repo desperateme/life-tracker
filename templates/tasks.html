@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📋 任务 — 一诺千金，违期则罚</h2>
+
+<!-- 新建任务 -->
+<details class="form-section">
+    <summary class="btn btn-primary">+ 新建任务</summary>
+    <form method="post" class="record-form">
+        <input type="text" name="title" placeholder="任务标题" required>
+        <textarea name="description" placeholder="任务描述（选填）" rows="2"></textarea>
+        <select name="priority">
+            <option value="medium">🟡 中优先级</option>
+            <option value="high">🔴 高优先级</option>
+            <option value="low">🟢 低优先级</option>
+        </select>
+        <input type="text" id="deadlinePicker" name="deadline" placeholder="选择截止日期和时间" required>
+        <button type="submit" class="btn btn-primary">创建任务</button>
+    </form>
+</details>
+
+<!-- 逾期任务 -->
+{% if overdue_tasks %}
+<h3>⚠️ 已逾期（{{ overdue_tasks|length }}）</h3>
+<ul class="task-list">
+    {% for t in overdue_tasks %}
+    <li class="task-item task-overdue">
+        <span class="task-priority">
+            {% if t.priority == 'high' %}🔴 高
+            {% elif t.priority == 'medium' %}🟡 中
+            {% else %}🟢 低{% endif %}
+        </span>
+        <span class="task-title">{{ t.title }}</span>
+        <span class="task-deadline">截止: {{ t.deadline.strftime('%Y-%m-%d %H:%M') }}</span>
+        <span class="task-penalty">
+            {% if t.penalty_applied %}
+            已扣 {% if t.priority == 'high' %}-50{% elif t.priority == 'medium' %}-30{% else %}-20{% endif %}
+            {% else %}
+            即将扣分
+            {% endif %}
+        </span>
+        <form method="post" action="/tasks/{{ t.id }}/complete" style="display:inline">
+            <button class="btn btn-sm btn-done">✓ 完成</button>
+        </form>
+        <form method="post" action="/tasks/{{ t.id }}/delete" style="display:inline">
+            <button class="btn btn-sm btn-danger">删除</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<!-- 进行中 -->
+<h3>⏳ 进行中（{{ pending_tasks|length }}）</h3>
+{% if pending_tasks %}
+<ul class="task-list">
+    {% for t in pending_tasks %}
+    <li class="task-item {% if (t.deadline - now).total_seconds() < 86400 %}task-urgent{% endif %}">
+        <span class="task-priority">
+            {% if t.priority == 'high' %}🔴 高
+            {% elif t.priority == 'medium' %}🟡 中
+            {% else %}🟢 低{% endif %}
+        </span>
+        <span class="task-title">{{ t.title }}</span>
+        <span class="task-deadline">
+            截止: {{ t.deadline.strftime('%Y-%m-%d %H:%M') }}
+            ({% set remaining = (t.deadline - now).total_seconds() // 86400 %}
+             {% if remaining > 0 %}{{ remaining|int }} 天{% else %}<1 天{% endif %})
+        </span>
+        <form method="post" action="/tasks/{{ t.id }}/complete" style="display:inline">
+            <button class="btn btn-sm btn-done">✓ 完成</button>
+        </form>
+        <details style="display:inline">
+            <summary class="btn btn-sm">延后</summary>
+            <form method="post" action="/tasks/{{ t.id }}/extend" style="display:inline">
+                <input type="text" class="extendPicker" name="new_deadline" value="{{ t.deadline.strftime('%Y-%m-%d %H:%M') }}">
+                <button class="btn btn-sm">确认</button>
+            </form>
+        </details>
+        <form method="post" action="/tasks/{{ t.id }}/delete" style="display:inline">
+            <button class="btn btn-sm btn-danger">删除</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">暂无任务，添加一个吧！</p>
+{% endif %}
+
+<!-- 已完成 -->
+{% if completed_tasks %}
+<details>
+    <summary>✅ 已完成（{{ completed_tasks|length }}）</summary>
+    <ul class="task-list">
+        {% for t in completed_tasks %}
+        <li class="task-item task-done">
+            <span class="task-title">{{ t.title }}</span>
+            <span class="task-deadline">完成于 {{ t.completed_at.strftime('%Y-%m-%d %H:%M') if t.completed_at else '' }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</details>
+{% endif %}
+
+<p class="hint">💡 逾期扣分：高 -50 | 中 -30 | 低 -20（每个任务只扣一次）</p>
+
+<script>
+// 新建任务日历
+flatpickr("#deadlinePicker", {
+    locale: "zh",
+    enableTime: true,
+    dateFormat: "Y-m-d H:i",
+    altInput: true,
+    altFormat: "Y年m月d日 H:i",
+    time_24hr: true,
+    minDate: "today",
+    defaultHour: 23,
+    defaultMinute: 59,
+});
+
+// 延后任务日历
+document.querySelectorAll(".extendPicker").forEach(function(el) {
+    flatpickr(el, {
+        locale: "zh",
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        altInput: true,
+        altFormat: "Y年m月d日 H:i",
+        time_24hr: true,
+        minDate: "today",
+    });
+});
+</script>
+{% endblock %}

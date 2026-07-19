@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>💪 健身记录</h2>
+
+<form method="post" class="record-form">
+    <input type="date" name="record_date" value="{{ today }}">
+    <input type="text" name="exercise_type" placeholder="项目（跑步/力量/游泳...）" required>
+    <input type="number" name="duration_minutes" placeholder="时长（分钟）" min="1" max="120" required>
+    <input type="text" name="weight_kg" placeholder="体重 kg（选填）">
+    <textarea name="notes" placeholder="备注..." rows="2"></textarea>
+    <button type="submit" class="btn btn-primary">+ 记录</button>
+</form>
+
+<h3>📅 今日记录</h3>
+{% if records %}
+<ul class="record-list">
+    {% for r in records %}
+    <li>
+        <span class="record-topic">{{ r.exercise_type }}</span>
+        <span class="record-time">{{ r.duration_minutes }} 分钟</span>
+        {% if r.weight_kg %}<span class="record-desc">{{ r.weight_kg }} kg</span>{% endif %}
+        {% if r.notes %}<span class="record-desc">{{ r.notes }}</span>{% endif %}
+        <form method="post" action="/fitness/{{ r.id }}/delete" style="display:inline">
+            <button type="submit" class="btn btn-sm btn-danger">删除</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">今天还没动，起来活动一下吧！</p>
+{% endif %}
+
+<p class="hint">💡 每 15 分钟 = +5 修为，练满 2 小时可获 +40</p>
+{% endblock %}

@@ -1,0 +1,262 @@
+/* ===== 修仙暗色主题 ===== */
+:root {
+    --bg: #0f0f1a;
+    --bg-card: #1a1a2e;
+    --bg-card2: #16213e;
+    --text: #e0e0e0;
+    --text-dim: #888;
+    --primary: #ff9800;
+    --danger: #e53935;
+    --success: #4caf50;
+    --accent: #9c27b0;
+    --gold: #ffd700;
+    --border: #2a2a4a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* ===== 导航 ===== */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.logo {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary);
+    text-decoration: none;
+}
+.nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.nav-links a:hover { color: var(--primary); background: var(--bg-card2); }
+
+/* ===== 容器 ===== */
+.container { max-width: 960px; margin: 0 auto; padding: 20px; }
+
+/* ===== 境界卡片 ===== */
+.realm-card {
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-card2));
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.realm-header { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+.realm-emoji { font-size: 2.5rem; }
+.realm-header h2 { font-size: 1.8rem; color: var(--gold); }
+.progress-bar-wrapper {
+    background: #0a0a15;
+    border-radius: 12px;
+    height: 24px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.progress-bar {
+    height: 100%;
+    border-radius: 12px;
+    transition: width 0.8s ease;
+    background: var(--primary);
+}
+.realm-info { color: var(--text-dim); font-size: 0.9rem; }
+.realm-info strong { color: var(--gold); }
+.breakthrough {
+    display: inline-block;
+    margin-left: 10px;
+    color: var(--primary);
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ===== 卡片行 ===== */
+.cards-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.card {
+    flex: 1; min-width: 100px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+.card-icon { font-size: 1.8rem; }
+.card-title { color: var(--text-dim); font-size: 0.85rem; margin: 4px 0; }
+.card-score { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+.card-danger { border-color: var(--danger); }
+.card-danger .card-score { color: var(--danger); }
+.card-clean { border-color: var(--success); }
+.card-clean .card-score { color: var(--success); }
+
+/* ===== 总结卡片 ===== */
+.summary-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+}
+.summary-card h3 { margin-bottom: 8px; }
+.comment { font-size: 1.2rem; margin-bottom: 10px; color: var(--gold); }
+.score-breakdown { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 6px; }
+.bonus { color: var(--success); font-size: 0.9rem; }
+.warning { color: var(--danger); font-size: 0.9rem; }
+.total-score { font-size: 1.3rem; margin-top: 8px; color: var(--primary); }
+
+/* ===== 图表 ===== */
+.chart-container {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+}
+.chart-container h3 { margin-bottom: 12px; }
+
+/* ===== 里程碑 ===== */
+.milestones {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border);
+}
+.milestones h3 { margin-bottom: 12px; }
+.milestone-row { margin-bottom: 10px; }
+.milestone-row span { display: block; margin-bottom: 4px; }
+.mini-bar {
+    background: #0a0a15; border-radius: 8px; height: 12px; overflow: hidden;
+}
+.mini-fill {
+    height: 100%; border-radius: 8px;
+    background: linear-gradient(90deg, var(--accent), var(--primary));
+    transition: width 0.5s ease;
+}
+
+/* ===== 徽章 ===== */
+.dashboard-header { display: flex; justify-content: center; gap: 12px; margin-bottom: 16px; }
+.badge {
+    padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;
+}
+.badge-fire { background: rgba(255,152,0,0.2); color: var(--primary); }
+.badge-clean { background: rgba(76,175,80,0.2); color: var(--success); }
+
+/* ===== 表单 ===== */
+.record-form {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    background: var(--bg-card); padding: 16px; border-radius: 12px;
+    margin-bottom: 20px; border: 1px solid var(--border);
+}
+.record-form input, .record-form select, .record-form textarea {
+    background: #0a0a15; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; color: var(--text); font-size: 0.9rem;
+    font-family: inherit;
+}
+.record-form input:focus, .record-form select:focus, .record-form textarea:focus {
+    outline: none; border-color: var(--primary);
+}
+.record-form input[type="date"], .record-form input[type="datetime-local"] { min-width: 140px; }
+.record-form input[type="text"], .record-form input[type="number"] { min-width: 120px; }
+
+/* ===== 按钮 ===== */
+.btn {
+    padding: 8px 16px; border: none; border-radius: 8px;
+    cursor: pointer; font-size: 0.9rem; font-weight: bold;
+    transition: all 0.2s; color: white;
+}
+.btn-primary { background: var(--primary); color: #000; }
+.btn-primary:hover { opacity: 0.85; }
+.btn-danger { background: var(--danger); }
+.btn-danger:hover { opacity: 0.85; }
+.btn-done { background: var(--success); }
+.btn-warn { background: #ff6d00; }
+.btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+.btn:hover { opacity: 0.8; }
+
+/* ===== 列表 ===== */
+.record-list { list-style: none; }
+.record-list li {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 14px; background: var(--bg-card); border-radius: 8px;
+    margin-bottom: 6px; border: 1px solid var(--border);
+}
+.record-topic { font-weight: bold; color: var(--primary); min-width: 80px; }
+.record-time { color: var(--gold); min-width: 60px; }
+.record-desc { color: var(--text-dim); font-size: 0.85rem; }
+.record-bad { border-left: 3px solid var(--danger) !important; }
+
+/* ===== 任务列表 ===== */
+.task-list { list-style: none; }
+.task-item {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 12px 14px; border-radius: 8px; margin-bottom: 6px;
+    border: 1px solid var(--border); background: var(--bg-card);
+}
+.task-overdue { border-left: 4px solid var(--danger); background: rgba(229,57,53,0.08); }
+.task-urgent { border-left: 4px solid var(--primary); }
+.task-done { opacity: 0.5; }
+.task-priority { min-width: 60px; font-size: 0.85rem; }
+.task-title { flex: 1; font-weight: bold; }
+.task-deadline { color: var(--text-dim); font-size: 0.85rem; }
+.task-penalty { color: var(--danger); font-size: 0.85rem; font-weight: bold; }
+
+/* ===== 财务 ===== */
+.finance-summary { display: flex; gap: 12px; margin-bottom: 16px; }
+.fin-card { flex: 1; text-align: center; padding: 14px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); }
+.fin-card.income { color: var(--success); }
+.fin-card.expense { color: var(--danger); }
+.fin-card.balance { color: var(--primary); }
+.fin-card strong { font-size: 1.3rem; display: block; margin-top: 4px; }
+
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.tab-btn {
+    padding: 8px 16px; border: none; border-radius: 8px 8px 0 0;
+    background: var(--bg-card); color: var(--text-dim); cursor: pointer; font-size: 0.9rem;
+}
+.tab-btn.active { background: var(--primary); color: #000; font-weight: bold; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.profit { color: var(--success); font-weight: bold; }
+.loss { color: var(--danger); font-weight: bold; }
+.clean { color: var(--success); }
+.warn { color: var(--danger); }
+.achieved { color: var(--success); font-size: 0.85rem; margin-top: 4px; }
+
+/* ===== 表单折叠 ===== */
+.form-section { margin-bottom: 16px; }
+.form-section summary { display: inline-block; cursor: pointer; }
+
+/* ===== 表格 ===== */
+.history-table { width: 100%; border-collapse: collapse; }
+.history-table th, .history-table td {
+    padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border);
+}
+.history-table th { color: var(--text-dim); font-size: 0.85rem; background: var(--bg-card); }
+.history-table tr:hover { background: var(--bg-card2); }
+
+/* ===== 通用 ===== */
+h2 { margin-bottom: 16px; color: var(--gold); }
+h3 { margin-bottom: 10px; }
+h4 { margin: 10px 0; color: var(--text-dim); }
+.empty { color: var(--text-dim); padding: 20px; text-align: center; }
+.hint { color: var(--text-dim); font-size: 0.85rem; margin-top: 16px; text-align: center; }
+.milestone-card { background: var(--bg-card2); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; }

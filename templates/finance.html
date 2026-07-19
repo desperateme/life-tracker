@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📒 财务管理</h2>
+
+<!-- 本月概览 -->
+<div class="finance-summary">
+    <div class="fin-card income">💵 本月收入<br><strong>¥{{ "%.2f"|format(total_income) }}</strong></div>
+    <div class="fin-card expense">📝 本月支出<br><strong>¥{{ "%.2f"|format(total_expense) }}</strong></div>
+    <div class="fin-card balance">💰 结余<br><strong>¥{{ "%.2f"|format(total_income - total_expense) }}</strong></div>
+</div>
+
+<!-- 标签页 -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="showTab('expense')">📝 支出</button>
+    <button class="tab-btn" onclick="showTab('income')">💵 收入</button>
+    <button class="tab-btn" onclick="showTab('borrow')">🤝 借贷</button>
+    <button class="tab-btn" onclick="showTab('invest')">📈 投资</button>
+</div>
+
+<!-- 支出 Tab -->
+<div id="tab-expense" class="tab-content active">
+    <form method="post" action="/finance/expense" class="record-form">
+        <input type="date" name="record_date" value="{{ today }}">
+        <select name="category">
+            {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        </select>
+        <input type="number" name="amount" placeholder="金额 ¥" min="0.01" step="0.01" required>
+        <input type="text" name="description" placeholder="备注">
+        <button class="btn btn-primary">+ 记支出</button>
+    </form>
+    <h4>今日支出</h4>
+    {% if today_expenses %}
+    <ul class="record-list">
+        {% for e in today_expenses %}
+        <li><span>{{ e.category }}</span> <span>¥{{ "%.2f"|format(e.amount) }}</span> <span>{{ e.description }}</span>
+            <form method="post" action="/finance/expense/{{ e.id }}/delete" style="display:inline">
+                <button class="btn btn-sm btn-danger">删除</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}<p class="empty">暂无记录</p>{% endif %}
+</div>
+
+<!-- 收入 Tab -->
+<div id="tab-income" class="tab-content">
+    <form method="post" action="/finance/income" class="record-form">
+        <input type="date" name="record_date" value="{{ today }}">
+        <input type="text" name="source" placeholder="来源（工资/副业/...）" required>
+        <input type="number" name="amount" placeholder="金额 ¥" min="0.01" step="0.01" required>
+        <input type="text" name="description" placeholder="备注">
+        <button class="btn btn-primary">+ 记收入</button>
+    </form>
+    <h4>今日收入</h4>
+    {% if today_incomes %}
+    <ul class="record-list">
+        {% for inc in today_incomes %}
+        <li><span>{{ inc.source }}</span> <span>¥{{ "%.2f"|format(inc.amount) }}</span> <span>{{ inc.description }}</span>
+            <form method="post" action="/finance/income/{{ inc.id }}/delete" style="display:inline">
+                <button class="btn btn-sm btn-danger">删除</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}<p class="empty">暂无记录</p>{% endif %}
+
+    {% if progress %}
+    <div class="milestone-card" style="margin-top:10px">
+        <span>💰 当前储蓄: <strong>¥{{ "%.2f"|format(progress.current_savings) }}</strong></span>
+        <form method="post" action="/api/savings/update" style="display:inline; margin-left:10px;">
+            <input type="number" name="current_savings" placeholder="手动更新" value="{{ progress.current_savings|int }}" style="width:100px" step="0.01">
+            <button class="btn btn-sm">更新</button>
+        </form>
+        {% if progress.savings_milestones %}
+        <div class="achieved">🏆 已达成: {{ progress.savings_milestones }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- 借贷 Tab -->
+<div id="tab-borrow" class="tab-content">
+    <form method="post" action="/finance/borrow" class="record-form">
+        <input type="date" name="record_date" value="{{ today }}">
+        <select name="type"><option>我欠别人</option><option>别人欠我</option></select>
+        <input type="text" name="person" placeholder="对方姓名" required>
+        <input type="number" name="amount" placeholder="金额 ¥" min="0.01" step="0.01" required>
+        <input type="date" name="due_date" placeholder="还款期限">
+        <textarea name="notes" placeholder="备注" rows="2"></textarea>
+        <button class="btn btn-primary">+ 记录借贷</button>
+    </form>
+    <h4>借贷列表</h4>
+    {% if borrows %}
+    <ul class="record-list">
+        {% for b in borrows %}
+        <li>
+            <span>{{ b.type }}</span>
+            <span>{{ b.person }}</span>
+            <span>¥{{ "%.2f"|format(b.amount) }}</span>
+            <span>已还 ¥{{ "%.2f"|format(b.repaid_amount) }}</span>
+            <span class="{% if b.status == '已还清' %}clean{% else %}warn{% endif %}">{{ b.status }}</span>
+            {% if b.status == '未还清' %}
+            <form method="post" action="/finance/borrow/{{ b.id }}/repay" style="display:inline">
+                <input type="number" name="amount" placeholder="还款金额" min="0.01" step="0.01" style="width:80px">
+                <button class="btn btn-sm">还款</button>
+            </form>
+            {% endif %}
+            <form method="post" action="/finance/borrow/{{ b.id }}/delete" style="display:inline">
+                <button class="btn btn-sm btn-danger">删除</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}<p class="empty">暂无借贷</p>{% endif %}
+</div>
+
+<!-- 投资 Tab -->
+<div id="tab-invest" class="tab-content">
+    <form method="post" action="/finance/investment" class="record-form">
+        <input type="date" name="record_date" value="{{ today }}">
+        <select name="invest_type">
+            {% for t in invest_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+        <input type="text" name="name" placeholder="名称（如沪深300ETF）" required>
+        <input type="number" name="buy_price" placeholder="买入金额 ¥" min="0.01" step="0.01" required>
+        <input type="number" name="current_value" placeholder="当前估值 ¥（选填）" min="0" step="0.01">
+        <textarea name="notes" placeholder="备注" rows="2"></textarea>
+        <button class="btn btn-primary">+ 记录投资</button>
+    </form>
+    <h4>持有中</h4>
+    {% if investments %}
+    <ul class="record-list">
+        {% for inv in investments %}
+        <li>
+            <span>{{ inv.invest_type }}</span>
+            <span>{{ inv.name }}</span>
+            <span>买入 ¥{{ "%.2f"|format(inv.buy_price) }}</span>
+            <span>现值 ¥{{ "%.2f"|format(inv.current_value) }}</span>
+            <span class="{% if inv.current_value > inv.buy_price %}profit{% else %}loss{% endif %}">
+                {% if inv.current_value > 0 and inv.buy_price > 0 %}
+                {{ "+" if inv.current_value > inv.buy_price else "" }}{{ "%.1f"|format((inv.current_value / inv.buy_price - 1) * 100) }}%
+                {% endif %}
+            </span>
+            <form method="post" action="/finance/investment/{{ inv.id }}/update" style="display:inline">
+                <input type="number" name="current_value" placeholder="新估值" min="0" step="0.01" style="width:80px">
+                <button class="btn btn-sm">更新</button>
+            </form>
+            <form method="post" action="/finance/investment/{{ inv.id }}/sell" style="display:inline">
+                <input type="number" name="sell_price" placeholder="卖出价" min="0" step="0.01" style="width:80px">
+                <button class="btn btn-sm btn-warn">卖出</button>
+            </form>
+            <form method="post" action="/finance/investment/{{ inv.id }}/delete" style="display:inline">
+                <button class="btn btn-sm btn-danger">删除</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}<p class="empty">暂无投资</p>{% endif %}
+</div>
+
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

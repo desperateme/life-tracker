@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☯ 人生修仙录</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">☯ 人生修仙录</a>
+        <div class="nav-links">
+            <a href="/learning">🧠 学习</a>
+            <a href="/fitness">💪 健身</a>
+            <a href="/discipline">🚫 戒律</a>
+            <a href="/tasks">📋 任务</a>
+            <a href="/earning">💰 赚钱</a>
+            <a href="/finance">📒 财务</a>
+            <a href="/history">📜 历史</a>
+        </div>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

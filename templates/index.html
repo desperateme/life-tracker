@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="dashboard-header">
+    <div class="streak-badges">
+        <span class="badge badge-fire">🔥 连续 {{ result.streak_days }} 天</span>
+        <span class="badge badge-clean">🧘 清净 {{ result.clean_streak_days }} 天</span>
+    </div>
+</div>
+
+<!-- 境界展示 -->
+<div class="realm-card">
+    <div class="realm-header">
+        <span class="realm-emoji">{{ result.realm.emoji }}</span>
+        <h2>{{ result.realm.realm }} · {{ result.realm.stage }}</h2>
+    </div>
+    <div class="progress-bar-wrapper">
+        <div class="progress-bar" style="width: {{ result.realm.progress_pct }}%; background: {{ result.realm.color }};"></div>
+    </div>
+    <div class="realm-info">
+        <span>距{{ result.realm.next_realm }}还需 <strong>{{ result.realm.points_to_next }}</strong> 点</span>
+        {% if result.realm.progress_pct >= 100 and result.streak_days >= 3 %}
+        <span class="breakthrough">⚡ 可突破！</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 五大维度卡片 -->
+<div class="cards-row">
+    <div class="card">
+        <div class="card-icon">🧠</div>
+        <div class="card-title">学习</div>
+        <div class="card-score">+{{ result.learning }}</div>
+    </div>
+    <div class="card">
+        <div class="card-icon">💪</div>
+        <div class="card-title">健身</div>
+        <div class="card-score">+{{ result.fitness }}</div>
+    </div>
+    <div class="card {% if result.discipline < 0 %}card-danger{% elif result.is_clean %}card-clean{% endif %}">
+        <div class="card-icon">🚫</div>
+        <div class="card-title">戒律</div>
+        <div class="card-score">{{ '+' if result.discipline > 0 else '' }}{{ result.discipline }}</div>
+    </div>
+    <div class="card">
+        <div class="card-icon">💰</div>
+        <div class="card-title">赚钱</div>
+        <div class="card-score">+{{ result.earning }}</div>
+    </div>
+    <div class="card">
+        <div class="card-icon">📒</div>
+        <div class="card-title">财务</div>
+        <div class="card-score">+{{ result.finance }}</div>
+    </div>
+</div>
+
+<!-- 今日总结 -->
+<div class="summary-card">
+    <h3>📅 今日总结</h3>
+    <p class="comment">{{ result.comment }}</p>
+    <div class="score-breakdown">
+        学习 +{{ result.learning }} &nbsp; 健身 +{{ result.fitness }} &nbsp; 戒律 {{ '+' if result.discipline > 0 else '' }}{{ result.discipline }} &nbsp; 赚钱 +{{ result.earning }} &nbsp; 财务 +{{ result.finance }}
+    </div>
+    {% if result.streak_bonus > 0 %}
+    <div class="bonus">连续加成: +{{ result.streak_bonus }}</div>
+    {% endif %}
+    {% if result.overdue_tasks > 0 %}
+    <div class="warning">⚠ {{ result.overdue_tasks }} 个任务逾期</div>
+    {% endif %}
+    <div class="total-score">总分 <strong>{{ result.total }}</strong> 点</div>
+</div>
+
+<!-- 趋势图 -->
+<div class="chart-container">
+    <h3>📈 近30天修为变化</h3>
+    <canvas id="trendChart" height="200"></canvas>
+</div>
+
+<!-- 里程碑 -->
+<div class="milestones">
+    <h3>🎯 里程碑进度</h3>
+    <div class="milestone-row">
+        <span>📱 粉丝: {{ follower_milestone }}</span>
+        <div class="mini-bar"><div class="mini-fill" style="width: 8.5%;"></div></div>
+    </div>
+    <div class="milestone-row">
+        <span>💰 储蓄: {{ savings_milestone }}</span>
+        <div class="mini-bar"><div class="mini-fill" style="width: 64%;"></div></div>
+    </div>
+</div>
+
+<script>
+fetch('/api/trend?days=30')
+  .then(r => r.json())
+  .then(data => {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.trend.map(d => d.date.slice(5)),
+        datasets: [{
+          label: '努力值',
+          data: data.trend.map(d => d.score),
+          borderColor: '#ff9800',
+          backgroundColor: 'rgba(255,152,0,0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#333' } },
+          x: { grid: { color: '#333' } }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

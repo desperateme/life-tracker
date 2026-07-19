@@ -1,0 +1,19 @@
+# 数据库（含个人数据）
+life_tracker.db
+
+# 日志
+logs/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# 临时文件
+*.ps1
+deploy.sh

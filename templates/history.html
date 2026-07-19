@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📜 历史记录</h2>
+
+<form method="get" class="record-form">
+    <input type="month" name="month" value="{{ current_month }}" onchange="this.form.submit()">
+</form>
+
+{% if daily_scores %}
+<table class="history-table">
+    <thead>
+        <tr>
+            <th>日期</th>
+            <th>学习(分)</th>
+            <th>健身(分)</th>
+            <th>赚钱(分)</th>
+            <th>估算修为</th>
+            <th>评语</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in daily_scores %}
+        <tr>
+            <td>{{ d.date }}</td>
+            <td>{{ d.learning_min }}</td>
+            <td>{{ d.fitness_min }}</td>
+            <td>{{ d.earning_min }}</td>
+            <td>{{ d.score }}</td>
+            <td>
+                {% if d.score >= 120 %}🔥🔥🔥
+                {% elif d.score >= 70 %}✨
+                {% elif d.score >= 30 %}💪
+                {% elif d.score > 0 %}⚠
+                {% else %}💀{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">本月暂无记录</p>
+{% endif %}
+{% endblock %}
