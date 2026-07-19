@@ -1,7 +1,7 @@
 """人生修仙录 — FastAPI 入口"""
 import sys
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -44,6 +44,17 @@ print(f"[启动] STATIC_DIR={STATIC_DIR}", flush=True)
 def health():
     """健康检查"""
     return {"status": "ok", "templates": TEMPLATE_DIR, "static": STATIC_DIR}
+
+@app.get("/ping")
+def ping(request: Request):
+    """测试模板渲染"""
+    return templates.TemplateResponse("base.html", {"request": request})
+
+@app.get("/test")
+def test_html():
+    """纯 HTML 测试"""
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse("<h1>Hello World</h1>")
 
 app.include_router(dashboard.router)
 app.include_router(learning.router)
