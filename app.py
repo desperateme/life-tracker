@@ -1,9 +1,13 @@
 """人生修仙录 — FastAPI 入口"""
+import sys
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
+
+# 确保 UTF-8 编码
+sys.stdout.reconfigure(encoding='utf-8') if hasattr(sys.stdout, 'reconfigure') else None
 
 from database import init_db
 from routes import dashboard, learning, fitness, discipline, tasks, earning, finance, progress
@@ -19,15 +23,28 @@ async def lifespan(app: FastAPI):
 # 创建应用
 app = FastAPI(title="人生修仙录", version="1.0", lifespan=lifespan)
 
-# 模板 & 静态文件
-BASE_DIR = Path(__file__).parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+# 模板 & 静态文件（用 resolve 确保绝对路径）
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATE_DIR = str(BASE_DIR / "templates")
+STATIC_DIR = str(BASE_DIR / "static")
+
+templates = Jinja2Templates(directory=TEMPLATE_DIR)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # 将 templates 挂到 app.state 供路由使用
 app.state.templates = templates
 
+# 调试：打印路径确认
+print(f"[启动] BASE_DIR={BASE_DIR}", flush=True)
+print(f"[启动] TEMPLATE_DIR={TEMPLATE_DIR}", flush=True)
+print(f"[启动] STATIC_DIR={STATIC_DIR}", flush=True)
+
 # 注册路由
+@app.get("/health")
+def health():
+    """健康检查"""
+    return {"status": "ok", "templates": TEMPLATE_DIR, "static": STATIC_DIR}
+
 app.include_router(dashboard.router)
 app.include_router(learning.router)
 app.include_router(fitness.router)
