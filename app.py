@@ -53,10 +53,18 @@ print(f"[启动] TEMPLATE_DIR={TEMPLATE_DIR}", flush=True)
 
 
 # ===== 认证中间件 =====
+PUBLIC_PATHS = ["/login", "/logout", "/health", "/ping", "/test", "/static", "/favicon.ico"]
+
+
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
-    """将认证状态注入 request.state，模板可通过 request.state.is_authenticated 访问"""
+    """全局认证：未登录只能访问公开路径，其余全部重定向到登录页"""
     request.state.is_authenticated = is_authenticated(request)
+
+    is_public = any(request.url.path.startswith(p) for p in PUBLIC_PATHS)
+    if not is_public and not is_authenticated(request):
+        return RedirectResponse(url=f"/login?next={request.url.path}", status_code=303)
+
     response = await call_next(request)
     return response
 
