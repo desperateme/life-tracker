@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 
+{% if error %}
+<div style="background:#300;color:#f88;padding:20px;border-radius:8px;margin-bottom:20px;white-space:pre-wrap;font-size:13px;">
+{{ error }}
+</div>
+{% endif %}
+
 <div class="dashboard-header">
     <div class="streak-badges">
         <span class="badge badge-fire">🔥 连续 {{ result.streak_days }} 天</span>
