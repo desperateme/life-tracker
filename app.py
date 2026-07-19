@@ -3,7 +3,8 @@ import sys
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 
 # 确保 UTF-8 编码
@@ -23,26 +24,30 @@ async def lifespan(app: FastAPI):
 # 创建应用
 app = FastAPI(title="人生修仙录", version="1.0", lifespan=lifespan)
 
-# 模板 & 静态文件（用 resolve 确保绝对路径）
+# 模板 & 静态文件
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
-# 确保模板目录存在
-import os as _os
-if not TEMPLATE_DIR.exists():
-    raise RuntimeError(f"Templates dir not found: {TEMPLATE_DIR}")
-
-templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+# 直接用 Jinja2 Environment（绕过 Starlette 的 Jinja2Templates 缓存 bug）
+jinja_env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# 将 templates 挂到 app.state 供路由使用
-app.state.templates = templates
 
-# 调试：打印路径确认
-print(f"[启动] BASE_DIR={BASE_DIR}", flush=True)
+class SimpleTemplates:
+    """简单的模板包装器，避免 Starlette Jinja2Templates 的缓存问题"""
+    def __init__(self, env: Environment):
+        self.env = env
+
+    def TemplateResponse(self, name: str, context: dict):
+        template = self.env.get_template(name)
+        rendered = template.render(**context)
+        return HTMLResponse(rendered)
+
+
+app.state.templates = SimpleTemplates(jinja_env)
+
 print(f"[启动] TEMPLATE_DIR={TEMPLATE_DIR}", flush=True)
-print(f"[启动] STATIC_DIR={STATIC_DIR}", flush=True)
 
 # 注册路由
 @app.get("/health")
@@ -55,7 +60,7 @@ def ping(request: Request):
     """测试模板渲染"""
     import traceback
     try:
-        return templates.TemplateResponse("base.html", {"request": request})
+        return app.state.templates.TemplateResponse("base.html", {"request": request})
     except Exception as e:
         from fastapi.responses import HTMLResponse
         return HTMLResponse(f"<pre>Template error: {e}\n{traceback.format_exc()}</pre>")
