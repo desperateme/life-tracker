@@ -65,11 +65,15 @@ def calc_earning_score(db: Session, target_date: date) -> int:
 
 
 def calc_finance_score(db: Session, target_date: date) -> int:
-    """计算财务维度修为：今日有记账则 +5"""
+    """计算财务维度修为：收入加分，支出扣分（每50元±5分）"""
     from models import ExpenseRecord, IncomeRecord
-    has_expense = db.query(ExpenseRecord).filter(ExpenseRecord.date == target_date).first()
-    has_income = db.query(IncomeRecord).filter(IncomeRecord.date == target_date).first()
-    return 5 if (has_expense or has_income) else 0
+    total_expense = db.query(func.coalesce(func.sum(ExpenseRecord.amount), 0)) \
+        .filter(ExpenseRecord.date == target_date).scalar()
+    total_income = db.query(func.coalesce(func.sum(IncomeRecord.amount), 0)) \
+        .filter(IncomeRecord.date == target_date).scalar()
+    income_score = int(total_income // 50) * 5
+    expense_score = int(total_expense // 50) * 5
+    return income_score - expense_score
 
 
 def get_realm_and_stage(effort: int) -> dict:

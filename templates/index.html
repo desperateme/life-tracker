@@ -53,10 +53,10 @@
         <div class="card-title">赚钱</div>
         <div class="card-score">+{{ result.earning }}</div>
     </div>
-    <div class="card">
+    <div class="card {% if result.finance < 0 %}card-danger{% endif %}">
         <div class="card-icon">📒</div>
         <div class="card-title">财务</div>
-        <div class="card-score">+{{ result.finance }}</div>
+        <div class="card-score">{{ '+' if result.finance > 0 else '' }}{{ result.finance }}</div>
     </div>
 </div>
 
@@ -65,7 +65,7 @@
     <h3>📅 今日总结</h3>
     <p class="comment">{{ result.comment }}</p>
     <div class="score-breakdown">
-        学习 +{{ result.learning }} &nbsp; 健身 +{{ result.fitness }} &nbsp; 戒律 {{ '+' if result.discipline > 0 else '' }}{{ result.discipline }} &nbsp; 赚钱 +{{ result.earning }} &nbsp; 财务 +{{ result.finance }}
+        学习 +{{ result.learning }} &nbsp; 健身 +{{ result.fitness }} &nbsp; 戒律 {{ '+' if result.discipline > 0 else '' }}{{ result.discipline }} &nbsp; 赚钱 +{{ result.earning }} &nbsp; 财务 {{ '+' if result.finance > 0 else '' }}{{ result.finance }}
     </div>
     {% if result.streak_bonus > 0 %}
     <div class="bonus">连续加成: +{{ result.streak_bonus }}</div>
