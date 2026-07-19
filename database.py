@@ -1,13 +1,25 @@
 """数据库连接和初始化"""
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-import os
-# Railway 默认挂载 /data，本地开发用当前目录
-DATA_DIR = "/data" if os.path.isdir("/data") else "."
-DATABASE_URL = f"sqlite:///{DATA_DIR}/life_tracker.db"
+# Railway 会自动注入 DATABASE_URL（PostgreSQL），本地开发用 SQLite
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL, echo=False, connect_args={"check_same_thread": False})
+if DATABASE_URL:
+    # PostgreSQL: Railway 提供的连接字符串
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    engine = create_engine(DATABASE_URL, echo=False)
+else:
+    # SQLite: 本地开发
+    DATA_DIR = "/data" if os.path.isdir("/data") else "."
+    engine = create_engine(
+        f"sqlite:///{DATA_DIR}/life_tracker.db",
+        echo=False,
+        connect_args={"check_same_thread": False},
+    )
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
