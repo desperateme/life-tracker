@@ -6,304 +6,168 @@
     <title>📊 财务可视化 — 人生修仙录</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        :root {
-            --bg: #0f0f1a;
-            --bg-card: #1a1a2e;
-            --text: #e0e0e0;
-            --text-dim: #888;
-            --primary: #ff9800;
-            --danger: #e53935;
-            --success: #4caf50;
-            --accent: #9c27b0;
-            --gold: #ffd700;
-            --border: #2a2a4a;
-        }
+        :root { --bg: #0f0f1a; --bg-card: #1a1a2e; --text: #e0e0e0; --text-dim: #888; --primary: #ff9800; --danger: #e53935; --success: #4caf50; --accent: #9c27b0; --gold: #ffd700; --border: #2a2a4a; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 20px;
-        }
+        body { font-family: 'Microsoft YaHei','PingFang SC',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
         .container { max-width: 1100px; margin: 0 auto; }
-        h1 { color: var(--gold); margin-bottom: 24px; font-size: 1.8rem; }
+        h1 { color: var(--gold); margin-bottom: 6px; }
         h1 span { color: var(--primary); }
+        .nav { margin-bottom: 20px; }
+        .nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; }
+        .nav a:hover { color: var(--primary); }
 
-        /* 统计卡片行 */
         .stats-row { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
-        .stat-card {
-            flex: 1; min-width: 150px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px;
-            text-align: center;
-        }
+        .stat-card { flex: 1; min-width: 140px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
         .stat-card .label { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 6px; }
         .stat-card .value { font-size: 1.8rem; font-weight: bold; }
-        .stat-card.expense .value { color: var(--danger); }
-        .stat-card.income .value { color: var(--success); }
-        .stat-card.balance .value { color: var(--primary); }
-        .stat-card.savings .value { color: var(--gold); }
 
-        /* 图表区域 */
         .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         @media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
-        .chart-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px;
-        }
-        .chart-card h3 { margin-bottom: 16px; color: var(--text); font-size: 1rem; }
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+        .chart-card h3 { margin-bottom: 16px; font-size: 1rem; }
         .chart-card canvas { max-height: 300px; }
 
-        /* 交易列表 */
-        .tx-list {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+        .tx-list { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
         .tx-list h3 { margin-bottom: 12px; }
         .tx-table { width: 100%; border-collapse: collapse; }
-        .tx-table th, .tx-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-        .tx-table th { color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase; }
-        .tx-table tr:hover { background: rgba(255,255,255,0.02); }
-        .tx-table .amount-out { color: var(--danger); font-weight: bold; }
-        .tx-table .amount-in { color: var(--success); font-weight: bold; }
-        .category-badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            background: rgba(255,152,0,0.15);
-            color: var(--primary);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-dim);
-        }
-        .empty-state .emoji { font-size: 3rem; margin-bottom: 10px; }
+        .tx-table th,.tx-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+        .tx-table th { color: var(--text-dim); font-size: 0.8rem; }
+        .tx-table .out { color: var(--danger); font-weight: bold; }
+        .tx-table .in { color: var(--success); font-weight: bold; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; }
+        .badge-out { background: rgba(229,57,53,0.15); color: var(--danger); }
+        .badge-in { background: rgba(76,175,80,0.15); color: var(--success); }
+        .empty { text-align: center; padding: 40px; color: var(--text-dim); }
     </style>
 </head>
 <body>
 <div class="container">
+    <div class="nav"><a href="/finance">← 返回财务</a></div>
     <h1>📊 <span>财务可视化</span> 面板</h1>
+    <p style="color:var(--text-dim);margin-bottom:20px;">数据实时读取，图表动态生成</p>
 
-    <!-- 统计卡片 -->
     <div class="stats-row">
-        <div class="stat-card expense">
-            <div class="label">📝 总支出</div>
-            <div class="value">¥50</div>
-        </div>
-        <div class="stat-card income">
-            <div class="label">💵 总收入</div>
-            <div class="value">¥0</div>
-        </div>
-        <div class="stat-card balance">
-            <div class="label">💰 本月结余</div>
-            <div class="value">−¥50</div>
-        </div>
-        <div class="stat-card savings">
-            <div class="label">🏦 当前储蓄</div>
-            <div class="value">¥0</div>
-        </div>
+        <div class="stat-card"><div class="label">📝 本月支出</div><div class="value" style="color:var(--danger)" id="val-expense">--</div></div>
+        <div class="stat-card"><div class="label">💵 本月收入</div><div class="value" style="color:var(--success)" id="val-income">--</div></div>
+        <div class="stat-card"><div class="label">💰 本月结余</div><div class="value" style="color:var(--primary)" id="val-net">--</div></div>
+        <div class="stat-card"><div class="label">🏦 当前储蓄</div><div class="value" style="color:var(--gold)" id="val-savings">--</div></div>
     </div>
 
-    <!-- 图表行 -->
     <div class="chart-grid">
-        <div class="chart-card">
-            <h3>📊 支出分类占比</h3>
-            <canvas id="categoryPie"></canvas>
-        </div>
-        <div class="chart-card">
-            <h3>📈 近30天收支趋势</h3>
-            <canvas id="dailyTrend"></canvas>
-        </div>
+        <div class="chart-card"><h3>📊 支出分类占比</h3><canvas id="categoryPie"></canvas></div>
+        <div class="chart-card"><h3>📈 近30天收支趋势</h3><canvas id="dailyTrend"></canvas></div>
     </div>
     <div class="chart-grid">
-        <div class="chart-card">
-            <h3>📅 每日支出明细</h3>
-            <canvas id="dailyBar"></canvas>
-        </div>
-        <div class="chart-card">
-            <h3>🔴 收支对比</h3>
-            <canvas id="incomeExpense"></canvas>
-        </div>
+        <div class="chart-card"><h3>📅 每日支出柱状图</h3><canvas id="dailyBar"></canvas></div>
+        <div class="chart-card"><h3>🔴 月度收支对比</h3><canvas id="incomeExpense"></canvas></div>
     </div>
 
-    <!-- 交易记录表 -->
     <div class="tx-list">
-        <h3>📋 全部交易记录</h3>
-        <table class="tx-table">
-            <thead>
-                <tr><th>日期</th><th>类型</th><th>分类/来源</th><th>描述</th><th>金额</th></tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>2026-07-19</td>
-                    <td><span class="category-badge">支出</span></td>
-                    <td>交通</td>
-                    <td>停车场停车费</td>
-                    <td class="amount-out">−¥15.00</td>
-                </tr>
-                <tr>
-                    <td>2026-07-19</td>
-                    <td><span class="category-badge">支出</span></td>
-                    <td>餐饮</td>
-                    <td>午饭</td>
-                    <td class="amount-out">−¥35.00</td>
-                </tr>
-            </tbody>
-        </table>
+        <h3>📋 交易记录</h3>
+        <table class="tx-table"><thead><tr><th>日期</th><th>类型</th><th>分类</th><th>描述</th><th>金额</th></tr></thead>
+        <tbody id="tx-body"><tr><td colspan="5" class="empty">加载中...</td></tr></tbody></table>
     </div>
 </div>
 
 <script>
-// ===== 支出分类占比 - 饼图 =====
-new Chart(document.getElementById('categoryPie'), {
-    type: 'doughnut',
-    data: {
-        labels: ['餐饮', '交通'],
-        datasets: [{
-            data: [35, 15],
-            backgroundColor: ['#e53935', '#ff9800'],
-            borderColor: '#1a1a2e',
-            borderWidth: 3,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: { color: '#e0e0e0', padding: 16, font: { size: 13 } }
-            }
-        }
-    }
-});
+const COLORS = ['#e53935','#ff9800','#2196f3','#4caf50','#9c27b0','#00bcd4','#ffeb3b','#ff5722','#795548'];
 
-// ===== 近30天趋势 - 折线图 =====
-new Chart(document.getElementById('dailyTrend'), {
-    type: 'line',
-    data: {
-        labels: ['7/19'],
-        datasets: [
-            {
-                label: '支出',
-                data: [50],
-                borderColor: '#e53935',
-                backgroundColor: 'rgba(229,57,53,0.1)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 5,
-            },
-            {
-                label: '收入',
-                data: [0],
-                borderColor: '#4caf50',
-                backgroundColor: 'rgba(76,175,80,0.1)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 5,
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                labels: { color: '#e0e0e0', usePointStyle: true, padding: 16 }
-            }
+fetch('/api/finance/summary')
+  .then(r => r.json())
+  .then(data => {
+    // 统计卡片
+    document.getElementById('val-expense').textContent = '¥' + data.total_expense.toFixed(2);
+    document.getElementById('val-income').textContent = '¥' + data.total_income.toFixed(2);
+    var net = data.net;
+    document.getElementById('val-net').textContent = (net >= 0 ? '¥' : '−¥') + Math.abs(net).toFixed(2);
+    document.getElementById('val-savings').textContent = '¥' + data.savings.toFixed(2);
+
+    // 饼图 - 支出分类
+    var catLabels = data.categories.map(c => c.name);
+    var catData = data.categories.map(c => c.total);
+    if (catLabels.length === 0) { catLabels = ['无数据']; catData = [1]; }
+    new Chart(document.getElementById('categoryPie'), {
+        type: 'doughnut',
+        data: {
+            labels: catLabels,
+            datasets: [{ data: catData, backgroundColor: COLORS.slice(0, catLabels.length), borderColor: '#1a1a2e', borderWidth: 3 }]
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: '#2a2a4a' },
-                ticks: { color: '#888', callback: v => '¥' + v }
-            },
-            x: {
-                grid: { color: '#2a2a4a' },
-                ticks: { color: '#888' }
-            }
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom', labels: { color: '#e0e0e0', padding: 16, font: { size: 13 } } } }
         }
-    }
-});
+    });
 
-// ===== 每日支出柱状图 =====
-new Chart(document.getElementById('dailyBar'), {
-    type: 'bar',
-    data: {
-        labels: ['7/19'],
-        datasets: [{
-            label: '支出 ¥',
-            data: [50],
-            backgroundColor: ['#e53935', '#ff7043'],
-            borderRadius: 8,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: '#2a2a4a' },
-                ticks: { color: '#888', callback: v => '¥' + v }
-            },
-            x: {
-                grid: { display: false },
-                ticks: { color: '#888' }
-            }
-        }
-    }
-});
-
-// ===== 收支对比图 =====
-new Chart(document.getElementById('incomeExpense'), {
-    type: 'bar',
-    data: {
-        labels: ['7月'],
-        datasets: [
-            {
-                label: '支出',
-                data: [50],
-                backgroundColor: '#e53935',
-                borderRadius: 6,
-            },
-            {
-                label: '收入',
-                data: [0],
-                backgroundColor: '#4caf50',
-                borderRadius: 6,
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                labels: { color: '#e0e0e0', usePointStyle: true, padding: 16 }
-            }
+    // 趋势图
+    var dates = data.daily.map(d => d.date.slice(5));
+    var expData = data.daily.map(d => d.expense);
+    var incData = data.daily.map(d => d.income);
+    new Chart(document.getElementById('dailyTrend'), {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [
+                { label: '支出', data: expData, borderColor: '#e53935', backgroundColor: 'rgba(229,57,53,0.08)', fill: true, tension: 0.3, pointRadius: 2 },
+                { label: '收入', data: incData, borderColor: '#4caf50', backgroundColor: 'rgba(76,175,80,0.08)', fill: true, tension: 0.3, pointRadius: 2 }
+            ]
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: '#2a2a4a' },
-                ticks: { color: '#888', callback: v => '¥' + v }
-            },
-            x: {
-                grid: { display: false },
-                ticks: { color: '#888' }
-            }
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#e0e0e0', usePointStyle: true, padding: 16 } } },
+            scales: { y: { beginAtZero: true, grid: { color: '#2a2a4a' }, ticks: { color: '#888', callback: v => '¥'+v } }, x: { grid: { color: '#2a2a4a' }, ticks: { color: '#888' } } }
         }
+    });
+
+    // 每日柱状图
+    new Chart(document.getElementById('dailyBar'), {
+        type: 'bar',
+        data: {
+            labels: dates.slice(-14),
+            datasets: [{ label: '支出', data: expData.slice(-14), backgroundColor: '#e53935', borderRadius: 6 }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, grid: { color: '#2a2a4a' }, ticks: { color: '#888', callback: v => '¥'+v } }, x: { grid: { display: false }, ticks: { color: '#888' } } }
+        }
+    });
+
+    // 收支对比
+    new Chart(document.getElementById('incomeExpense'), {
+        type: 'bar',
+        data: {
+            labels: ['本月'],
+            datasets: [
+                { label: '支出', data: [data.total_expense], backgroundColor: '#e53935', borderRadius: 6 },
+                { label: '收入', data: [data.total_income], backgroundColor: '#4caf50', borderRadius: 6 }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#e0e0e0', usePointStyle: true, padding: 16 } } },
+            scales: { y: { beginAtZero: true, grid: { color: '#2a2a4a' }, ticks: { color: '#888', callback: v => '¥'+v } }, x: { grid: { display: false }, ticks: { color: '#888' } } }
+        }
+    });
+
+    // 交易表格
+    var tbody = document.getElementById('tx-body');
+    if (data.transactions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">暂无交易记录</td></tr>';
+    } else {
+        tbody.innerHTML = data.transactions.map(t =>
+            '<tr>' +
+            '<td>'+t.date+'</td>' +
+            '<td><span class="badge '+(t.type==='支出'?'badge-out':'badge-in')+'">'+t.type+'</span></td>' +
+            '<td>'+t.category+'</td>' +
+            '<td>'+(t.desc||'')+'</td>' +
+            '<td class="'+(t.type==='支出'?'out':'in')+'">'+(t.type==='支出'?'−':'+')+'¥'+t.amount.toFixed(2)+'</td>' +
+            '</tr>'
+        ).join('');
     }
-});
+  })
+  .catch(e => {
+    document.getElementById('tx-body').innerHTML = '<tr><td colspan="5" class="empty">加载失败: '+e.message+'</td></tr>';
+  });
 </script>
 </body>
 </html>

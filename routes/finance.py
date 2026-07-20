@@ -1,5 +1,5 @@
 """财务管理 — 支出/收入/借贷/投资 + 储蓄里程碑"""
-from datetime import date as date_type, datetime
+from datetime import date as date_type, datetime, timedelta
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -263,3 +263,49 @@ def update_savings(
             log("info", "里程碑", "达成储蓄里程碑", f"{name} | 奖励 +{bonus}")
         db.commit()
     return RedirectResponse(url="/finance", status_code=303)
+
+
+# ===== 财务数据 API（供图表使用）=====
+@router.get("/api/finance/summary")
+def api_finance_summary(db: Session = Depends(get_db)):
+    """返回财务汇总数据 JSON"""
+    today = date_type.today()
+    month_start = today.replace(day=1)
+    delta = timedelta
+
+    total_expense = db.query(func.coalesce(func.sum(ExpenseRecord.amount), 0)) \
+        .filter(ExpenseRecord.date >= month_start, ExpenseRecord.date <= today).scalar() or 0
+    total_income = db.query(func.coalesce(func.sum(IncomeRecord.amount), 0)) \
+        .filter(IncomeRecord.date >= month_start, IncomeRecord.date <= today).scalar() or 0
+
+    cat_rows = db.query(ExpenseRecord.category, func.sum(ExpenseRecord.amount).label("total")) \
+        .filter(ExpenseRecord.date >= month_start, ExpenseRecord.date <= today) \
+        .group_by(ExpenseRecord.category).order_by(func.sum(ExpenseRecord.amount).desc()).all()
+    categories = [{"name": r[0], "total": float(r[1])} for r in cat_rows]
+
+    daily_data = []
+    for i in range(29, -1, -1):
+        d = today - delta(days=i)
+        de = db.query(func.coalesce(func.sum(ExpenseRecord.amount), 0)) \
+            .filter(ExpenseRecord.date == d).scalar() or 0
+        di = db.query(func.coalesce(func.sum(IncomeRecord.amount), 0)) \
+            .filter(IncomeRecord.date == d).scalar() or 0
+        daily_data.append({"date": d.isoformat(), "expense": float(de), "income": float(di)})
+
+    progress = db.query(LifeProgress).filter(LifeProgress.id == 1).first()
+    savings = float(progress.current_savings) if progress else 0
+
+    expenses = db.query(ExpenseRecord).order_by(ExpenseRecord.date.desc(), ExpenseRecord.created_at.desc()).limit(50).all()
+    incomes = db.query(IncomeRecord).order_by(IncomeRecord.date.desc(), IncomeRecord.created_at.desc()).limit(50).all()
+    transactions = []
+    for e in expenses:
+        transactions.append({"date": str(e.date), "type": "支出", "category": e.category, "desc": e.description or "", "amount": float(e.amount)})
+    for inc in incomes:
+        transactions.append({"date": str(inc.date), "type": "收入", "category": inc.source or "其他", "desc": inc.description or "", "amount": float(inc.amount)})
+    transactions.sort(key=lambda x: x["date"], reverse=True)
+
+    return {
+        "total_expense": float(total_expense), "total_income": float(total_income),
+        "net": float(total_income) - float(total_expense), "savings": savings,
+        "categories": categories, "daily": daily_data, "transactions": transactions[:50],
+    }
