@@ -111,6 +111,12 @@ def logout():
     return response
 
 
+@app.get("/finance/charts")
+def finance_charts(request: Request):
+    """财务可视化面板"""
+    return app.state.templates.TemplateResponse("finance_charts.html", {"request": request})
+
+
 # 注册路由
 @app.get("/health")
 def health():
