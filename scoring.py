@@ -303,6 +303,9 @@ def sync_daily_effort(db: Session, target_date: date = None):
     结算所有未结算的「昨天及之前」的日子。
     当天（today）的分数只实时预览，不锁死；过了 24 点才会锁死昨天。
 
+    如果 target_date 是已经被结算过的过去日期（补录场景），
+    则单独重新计算该日分数并更新 DailySummary，同时向前传播连锁反应。
+
     调用时机：每次打开首页 / 增删记录时都可以调用，不会重复结算。
     """
     from models import LifeProgress, DailySummary
@@ -317,9 +320,7 @@ def sync_daily_effort(db: Session, target_date: date = None):
     today = date.today()
 
     # 确定需要结算的日期范围
-    # last_effort_date = 最后一次已结算的日期（该日分数已锁死入库）
     if progress.last_effort_date is None:
-        # 第一次使用，标记「昨天及之前已结算」
         progress.last_effort_date = today - timedelta(days=1)
         progress.last_effort_amount = 0
         db.commit()
@@ -327,19 +328,24 @@ def sync_daily_effort(db: Session, target_date: date = None):
 
     last_date = progress.last_effort_date
 
-    # 需要结算从 last_date+1 到 yesterday 的每一天
+    # ---- 补录旧日期：target_date 是已结算过的过去日期 ----
+    if target_date < today and target_date <= last_date:
+        _resync_single_day(db, progress, target_date)
+        # 连锁结算该日期之后到昨天的所有日子（因为总分变化可能影响连续天数）
+        _resync_forward(db, progress, target_date + timedelta(days=1), today - timedelta(days=1))
+        return None
+
+    # ---- 正常结算：从 last_date+1 到 yesterday ----
     start = last_date
-    end = today - timedelta(days=1)  # 昨天（今天的数据等明天才锁死）
+    end = today - timedelta(days=1)
 
     breakthrough_occurred = False
     while start < end:
         start += timedelta(days=1)
-        # 计算这一天的分数
         day_result = calc_daily_score(db, start)
         day_effort = day_result["total"]
         day_clean = day_result["is_clean"]
 
-        # 存入每日结算表
         log("info", "结算", f"结算 {start}", f"总分={day_effort} 学习={day_result['learning']} 戒律={day_result['discipline']}")
         existing = db.query(DailySummary).filter(DailySummary.date == start).first()
         if not existing:
@@ -356,10 +362,8 @@ def sync_daily_effort(db: Session, target_date: date = None):
                 comment=day_result["comment"],
             ))
 
-        # 应用到总进度
         progress.total_effort += day_effort
 
-        # 更新连续天数
         if day_effort > 0:
             progress.streak_days += 1
         else:
@@ -370,12 +374,10 @@ def sync_daily_effort(db: Session, target_date: date = None):
         else:
             progress.clean_streak_days = 0
 
-    # 更新结算日期
     progress.last_effort_date = end if end >= last_date else last_date
     if progress.total_effort < 0:
         progress.total_effort = 0
 
-    # 更新境界
     realm_info = get_realm_and_stage(progress.total_effort)
     old_realm = progress.current_realm
     progress.current_realm = realm_info["realm"]
@@ -388,9 +390,63 @@ def sync_daily_effort(db: Session, target_date: date = None):
 
     db.commit()
 
-    # 返回最新的结算信息
     return {
         "synced_until": end.isoformat() if end >= last_date else last_date.isoformat(),
         "breakthrough": breakthrough_occurred,
         "realm": realm_info,
     }
+
+
+def _resync_single_day(db: Session, progress, target_date: date):
+    """重新结算单个已结算日期的分数，更新 total_effort 差值"""
+    from models import DailySummary
+
+    day_result = calc_daily_score(db, target_date)
+    new_score = day_result["total"]
+    new_clean = day_result["is_clean"]
+
+    existing = db.query(DailySummary).filter(DailySummary.date == target_date).first()
+    old_score = existing.total_score if existing else 0
+
+    if existing:
+        existing.learning_score = day_result["learning"]
+        existing.fitness_score = day_result["fitness"]
+        existing.earning_score = day_result["earning"]
+        existing.finance_score = day_result["finance"]
+        existing.discipline_score = day_result["discipline"]
+        existing.streak_bonus = day_result["streak_bonus"]
+        existing.total_score = new_score
+        existing.is_clean = new_clean
+        existing.comment = day_result["comment"]
+    else:
+        db.add(DailySummary(
+            date=target_date,
+            learning_score=day_result["learning"],
+            fitness_score=day_result["fitness"],
+            earning_score=day_result["earning"],
+            finance_score=day_result["finance"],
+            discipline_score=day_result["discipline"],
+            streak_bonus=day_result["streak_bonus"],
+            total_score=new_score,
+            is_clean=new_clean,
+            comment=day_result["comment"],
+        ))
+
+    delta = new_score - old_score
+    if delta != 0:
+        progress.total_effort += delta
+        if progress.total_effort < 0:
+            progress.total_effort = 0
+        log("info", "补录", f"重算 {target_date}", f"旧分={old_score} 新分={new_score} 差值={delta}")
+
+    db.flush()
+
+
+def _resync_forward(db: Session, progress, from_date: date, to_date: date):
+    """从 from_date 到 to_date 逐日重新结算（处理补录后的连锁反应）"""
+    from models import DailySummary
+
+    d = from_date - timedelta(days=1)
+    while d < to_date:
+        d += timedelta(days=1)
+        _resync_single_day(db, progress, d)
